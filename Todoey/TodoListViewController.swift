@@ -11,9 +11,14 @@ import UIKit
 class TodoListViewController: UITableViewController{
 
     @IBOutlet var theNoteTableView: UITableView!
-    let itemCells = ["Buy Damogron", "Get the Starbot", "Find Wagner"]
+    var itemCells = ["Buy Damogron", "Get the Starbot", "Find Wagner"]
+    let defaults = UserDefaults.standard
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let items = defaults.array(forKey: "StoredItemCells") as? [String] {
+            itemCells = items
+        }
         //theNoteTableView.delegate = self
         // Do any additional setup after loading the view.
         
@@ -52,5 +57,22 @@ class TodoListViewController: UITableViewController{
     }
 
 
+    @IBAction func addToDoItemBtn(_ sender: UIBarButtonItem) {
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add Todoey App", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            self.itemCells.append(textField.text!)
+            self.defaults.set(self.itemCells,forKey: "StoredItemCells")
+            self.tableView.reloadData()
+        }
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create Item to Add"
+            textField = alertTextField
+        }
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
+    
 }
 
