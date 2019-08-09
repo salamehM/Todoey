@@ -12,9 +12,12 @@ class TodoListViewController: UITableViewController{
 
     @IBOutlet var theNoteTableView: UITableView!
     var itemCells = [Item]()
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
         
         let firstNewItem = Item()
         firstNewItem.itemName = "First Item"
@@ -33,7 +36,8 @@ class TodoListViewController: UITableViewController{
 //        }
         //theNoteTableView.delegate = self
         // Do any additional setup after loading the view.
-        
+       
+        loadItems()
     }
     // Return the tableview cell count
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -59,24 +63,9 @@ class TodoListViewController: UITableViewController{
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         itemCells[indexPath.row].done = !itemCells[indexPath.row].done
-        
-        tableView.reloadData()
-        
-//        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-//
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-//        }
-//        else {
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-//
-//        }
-        
-        
-        
-        
-        
-        
+        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
+        
     }
 
 
@@ -88,8 +77,8 @@ class TodoListViewController: UITableViewController{
             let newItem = Item()
             newItem.itemName = textField.text!
             self.itemCells.append(newItem)
-            //self.defaults.set(self.itemCells,forKey: "StoredItemCells")
-            self.tableView.reloadData()
+            
+            self.saveItems()
         }
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create Item to Add"
@@ -98,6 +87,40 @@ class TodoListViewController: UITableViewController{
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
     }
+    
+    func saveItems(){
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+            
+            let data = try encoder.encode(itemCells)
+            try data.write(to:dataFilePath!)
+            
+        } catch {
+            
+            print("Error Encoding data \(error)")
+        }
+        //self.defaults.set(self.itemCells,forKey: "StoredItemCells")
+        self.tableView.reloadData()
+    }
+    
+    func loadItems(){
+        
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            
+            do{
+                itemCells = try decoder.decode([Item].self, from: data)
+            }
+            catch {
+                print("ERROR DECODING \(error)")
+                
+            }
+        }
+    }
+    
+    
     
 }
 
